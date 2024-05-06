@@ -1,6 +1,6 @@
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::io::{self, BufRead};
 
 fn scan_files_with_extensions(dir: &Path, extensions: &[&str], files: &mut Vec<(String, u64)>) {
@@ -36,8 +36,10 @@ fn main() {
     let file_extensions: Vec<&str> = file_extensions.split(',').map(|s| s.trim()).collect();
 
     let mut folder_paths: Vec<PathBuf> = Vec::new();
+    let mut entered_paths: HashSet<PathBuf> = HashSet::new(); // Keep track of entered folder paths
+
     loop {
-        println!("Enter a folder path (press Enter to start scanning): ");
+        println!("Enter a folder path (press Enter AGAIN to start scanning): ");
         let mut folder_path = String::new();
         stdin.lock().read_line(&mut folder_path).expect("Failed to read input.");
         let folder_path = folder_path.trim();
@@ -48,7 +50,12 @@ fn main() {
 
         let path = Path::new(folder_path);
         if path.is_dir() {
-            folder_paths.push(path.to_path_buf());
+            if entered_paths.contains(&path.to_path_buf()) {
+                println!("This folder path has already been entered. Please enter a different folder path.");
+            } else {
+                entered_paths.insert(path.to_path_buf());
+                folder_paths.push(path.to_path_buf());
+            }
         } else {
             println!("Invalid folder path. Please enter a valid folder path.");
         }
